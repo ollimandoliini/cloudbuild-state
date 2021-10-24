@@ -1,6 +1,6 @@
 module Main where
 
-import Control.Monad
+import Control.Monad (forM_, when)
 import Data.Aeson (decode, encode)
 import qualified Data.ByteString.Lazy as B hiding (putStrLn)
 import qualified Data.ByteString.Lazy.Char8 as B (putStrLn)
@@ -26,7 +26,7 @@ get :: String -> IO ()
 get key = do
   fileExists <- doesFileExist dbPath
   if fileExists
-    then do
+    then
       B.readFile dbPath >>= \content -> case (decode content :: Maybe Database) >>= Map.lookup key of
         (Just val) -> putStrLn val
         Nothing -> error "Value not found"
@@ -36,7 +36,7 @@ set :: String -> String -> IO ()
 set key val = do
   fileExists <- doesFileExist dbPath
   if fileExists
-    then do
+    then
       B.readFile dbPath >>= \content -> case (decode content :: Maybe Database) of
         (Just db) -> B.writeFile dbPath $ encode $ Map.insert key val db
         Nothing -> B.writeFile dbPath (encode $ Map.fromList [(key, val)])
@@ -45,13 +45,12 @@ set key val = do
 list :: IO ()
 list = do
   fileExists <- doesFileExist dbPath
-  when fileExists $ do
+  when fileExists $
     B.readFile dbPath >>= \content -> case (decode content :: Maybe Database) of
-      Just db -> forM_ (Map.toList db) (\(key, val) -> putStrLn $ key ++ "=" ++ val)
+      Just db -> forM_ (Map.toList db) (\(key, val) -> putStrLn (key ++ "=" ++ val))
       Nothing -> return ()
 
 listJson :: IO ()
 listJson = do
   fileExists <- doesFileExist dbPath
-  when fileExists $ do
-    B.readFile dbPath >>= B.putStrLn
+  when fileExists (B.readFile dbPath >>= B.putStrLn)
