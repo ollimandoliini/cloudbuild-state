@@ -22,7 +22,7 @@ After that you can start using it by adding following as the first step in your 
 ### Commands
 
 ```
-/workspace set [key] [value]
-/workspace get [key]
-/workspace list (--json)
+/workspace/cloudbuild-state set [key] [value]
+/workspace/cloudbuild-state get [key]
+/workspace/cloudbuild-state list (--json)
 ```
