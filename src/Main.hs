@@ -8,8 +8,15 @@ import qualified Data.Map as Map
 import System.Directory (doesFileExist)
 import System.Environment (getArgs)
 import System.FileLock
+import System.Environment.Executable
 
-dbPath = "db.json"
+
+getDbPath :: IO FilePath
+getDbPath = do
+  directory <- fst <$> splitExecutablePath
+  return $ directory ++ "/" ++ dbFileName
+  where
+    dbFileName = "db.json"
 
 type Database = Map.Map String String
 
@@ -25,6 +32,7 @@ handleArgs args = putStr $ "Unknown command: '" ++ unwords args ++ "'\nCommands:
 
 get :: String -> IO ()
 get key = do
+  dbPath <- getDbPath
   lockFile dbPath Exclusive
   B.readFile dbPath >>= \content -> case (decode content :: Maybe Database) >>= Map.lookup key of
     (Just val) -> putStrLn val
@@ -32,6 +40,7 @@ get key = do
 
 set :: String -> String -> IO ()
 set key val = do
+  dbPath <- getDbPath
   lockFile dbPath Exclusive
   B.readFile dbPath >>= \content -> case (decode content :: Maybe Database) of
     (Just db) -> B.writeFile dbPath $ encode $ Map.insert key val db
@@ -39,6 +48,7 @@ set key val = do
 
 list :: IO ()
 list = do
+  dbPath <- getDbPath
   lockFile dbPath Exclusive
   B.readFile dbPath >>= \content -> case (decode content :: Maybe Database) of
     Just db -> forM_ (Map.toList db) (\(key, val) -> putStrLn (key ++ "=" ++ val))
@@ -46,5 +56,6 @@ list = do
 
 listJson :: IO ()
 listJson = do
+  dbPath <- getDbPath
   lockFile dbPath Exclusive
   B.readFile dbPath >>= B.putStrLn
